@@ -144,7 +144,7 @@ export function AdminClient() {
     return (<>
       <PageHeading title="Admin Settings" description="Change administrator password and create users with controlled permissions."/>
 
-      <div className="grid gap-6 xl:grid-cols-[0.85fr_1.15fr]">
+      <div className="grid gap-6 xl:grid-cols-[1fr_1.35fr]">
         <Card>
           <CardHeader title="Administrator Account" description="Update admin name, user ID/email, and password. Current password is required."/>
           <form onSubmit={changePassword} className="grid gap-4 p-5" autoComplete="off">
@@ -169,17 +169,20 @@ export function AdminClient() {
           <form onSubmit={createUser} className="grid gap-5 p-5" autoComplete="off">
             <input className="hidden" type="text" name="fake-user-id" autoComplete="username"/>
             <input className="hidden" type="password" name="fake-user-password" autoComplete="new-password"/>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-3">
               <Field label="User Name">
-                <Input name="second-user-name" autoComplete="off" value={newUser.name} onChange={(event) => setNewUser({ ...newUser, name: event.target.value })} required/>
+                <Input name="second-user-name" autoComplete="off" value={newUser.name} onChange={(event) => setNewUser({ ...newUser, name: event.target.value })} required placeholder="User display name"/>
               </Field>
               <Field label="User ID / Email">
-                <Input name="second-user-email" autoComplete="off" type="email" value={newUser.email} onChange={(event) => setNewUser({ ...newUser, email: event.target.value })} required/>
+                <Input name="second-user-email" autoComplete="off" type="email" value={newUser.email} onChange={(event) => setNewUser({ ...newUser, email: event.target.value })} required placeholder="user@kmbuilders.com"/>
               </Field>
               <PasswordField label="Password" value={newUser.password} autoComplete="new-password" onChange={(value) => setNewUser({ ...newUser, password: value })}/>
             </div>
-            <PermissionPicker value={newUser.permissions} onChange={(permissions) => setNewUser({ ...newUser, permissions })}/>
-            <Button type="submit" disabled={saving}>
+            <div>
+              <p className="mb-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">Select User Permissions</p>
+              <PermissionPicker value={newUser.permissions} onChange={(permissions) => setNewUser({ ...newUser, permissions })} cols="grid-cols-1 sm:grid-cols-2"/>
+            </div>
+            <Button type="submit" disabled={saving} className="w-full sm:w-auto sm:self-start">
               <UserPlus className="h-4 w-4"/>
               Save User Access
             </Button>
@@ -222,7 +225,7 @@ export function AdminClient() {
                     </select>
                   </Field>
                 </div>
-                <PermissionPicker value={user.permissions || []} onChange={(permissions) => updateUser(user, { permissions })}/>
+                <PermissionPicker value={user.permissions || []} onChange={(permissions) => updateUser(user, { permissions })} cols="grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"/>
               </div>);
             })}
           </div>)}
@@ -230,22 +233,31 @@ export function AdminClient() {
     </>);
 }
 
-function PermissionPicker({ value, onChange }) {
+function PermissionPicker({ value, onChange, cols = "grid-cols-1 sm:grid-cols-2" }) {
     function toggle(permission) {
         const next = value.includes(permission) ? value.filter((item) => item !== permission) : [...value, permission];
         onChange(next);
     }
-    return (<div className="grid gap-4 md:grid-cols-4">
-      {permissionGroups.map((group) => (<div key={group.title} className="rounded-xl border border-border bg-white/35 p-4 dark:bg-white/5">
-          <p className="mb-3 flex items-center gap-2 text-sm font-semibold">
-            <ShieldCheck className="h-4 w-4 text-primary"/>
-            {group.title}
-          </p>
-          <div className="grid gap-2">
-            {group.items.map(([permission, label]) => (<label key={permission} className="flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={value.includes(permission)} onChange={() => toggle(permission)} className="h-4 w-4 accent-blue-600"/>
-                <span>{label}</span>
-              </label>))}
+    return (<div className={`grid gap-3.5 ${cols}`}>
+      {permissionGroups.map((group) => (<div key={group.title} className="rounded-2xl border border-slate-200/80 bg-white/70 p-4 shadow-sm dark:border-white/10 dark:bg-white/5">
+          <div className="mb-3 flex items-center gap-2.5 border-b border-slate-100 pb-2.5 dark:border-white/10">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400">
+              <ShieldCheck className="h-4 w-4 shrink-0"/>
+            </div>
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
+              {group.title}
+            </p>
+          </div>
+          <div className="grid gap-1.5">
+            {group.items.map(([permission, label]) => {
+                const checked = value.includes(permission);
+                return (<label key={permission} className={`group flex items-start gap-2.5 rounded-lg px-2.5 py-1.5 transition-colors cursor-pointer select-none ${checked ? "bg-blue-50/80 text-blue-950 dark:bg-blue-950/40 dark:text-blue-200" : "hover:bg-slate-50 text-slate-700 dark:text-slate-300 dark:hover:bg-white/5"}`}>
+                <input type="checkbox" checked={checked} onChange={() => toggle(permission)} className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 text-blue-600 focus:ring-blue-500 accent-blue-600 cursor-pointer"/>
+                <span className="text-xs font-medium leading-snug break-words">
+                  {label}
+                </span>
+              </label>);
+            })}
           </div>
         </div>))}
     </div>);
